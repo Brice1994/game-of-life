@@ -2,7 +2,7 @@ import React from 'react';
 import './Game.css'
 import Cell from "./Cell";
 
-export const CELL_SIZE = 20;
+export const CELL_SIZE = 10;
 const WIDTH = 800;
 const HEIGHT = 600;
 
