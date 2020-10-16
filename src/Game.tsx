@@ -1,15 +1,17 @@
 import React from 'react';
 import './Game.css'
 import Cell from "./Cell";
+
 export const CELL_SIZE = 20;
 const WIDTH = 800;
 const HEIGHT = 600;
 
 class Game extends React.Component<any, any>{
-    state: {cells: {x: number, y: number}[], interval: number, isRunning: boolean} = {
+    state: {cells: {x: number, y: number}[], interval: number, isRunning: boolean, frequency: number} = {
         cells: [],
         interval: 100,
-        isRunning: false
+        isRunning: false,
+        frequency: 20
     }
     rows: number;
     cols: number;
@@ -45,7 +47,12 @@ class Game extends React.Component<any, any>{
             cells: this.makeCells()
         })
     }
-
+    clear() {
+        this.board = this.makeEmptyBoard();
+        this.setState({
+            cells: this.makeCells()
+        })
+    }
     makeEmptyBoard() {
         let board: boolean[][] = [];
         for(let y = 0; y < this.rows; y++){
@@ -64,15 +71,11 @@ class Game extends React.Component<any, any>{
     }
     runIteration() {
         let newBoard = this.makeEmptyBoard();
-        for(let i = 0; i < newBoard.length; i++){
-            for(let j = 0; j < newBoard[i].length; j++){
+        for(let i = 0; i < this.rows; i++){
+            for(let j = 0; j < this.cols; j++){
                 let n = this.getNeighbors(this.board, i, j);
-                if(this.board[i][j] === 1){
-                    if(n < 2) {
-                        newBoard[i][j] = false;
-                    }else if(n > 3){
-                        newBoard[i][j] = false;
-                    }
+                if(this.board[i][j]){
+                    newBoard[i][j] = n === 2 || n === 3;
                 }else {
                     if(n === 3){
                         newBoard[i][j] = true;
@@ -129,14 +132,29 @@ class Game extends React.Component<any, any>{
         return cells;
     }
 
-    handleDrag(event: React.DragEvent<HTMLDivElement>){
-        console.log(event.clientX, event.clientY)
+    random(){
+        let newBoard = this.makeEmptyBoard();
+        for(let i = 0; i < this.rows; i++) {
+            for(let j = 0; j < this.cols; j++){
+                let v = Math.floor(Math.random() * Math.floor(100));
+                newBoard[i][j] = v < this.state.frequency;
+            }
+        }
+        this.board = newBoard;
+        this.setState({
+            cells: this.makeCells()
+        })
+    }
+    handleFrequencyChange(event: any){
+        this.setState({
+            frequency: event.target.value
+        })
     }
     render() {
         const {cells} = this.state;
         return (
             <div>
-                <div onDrag={(e) => this.handleDrag(e)} onClick={(e) => this.handleClick(e)} ref={(n) => {this.boardRef = n}} className="Board" style={{width: WIDTH, height: HEIGHT, backgroundSize: `${CELL_SIZE}px ${CELL_SIZE}px`}}>
+                <div onClick={(e) => this.handleClick(e)} ref={(n) => {this.boardRef = n}} className="Board" style={{width: WIDTH, height: HEIGHT, backgroundSize: `${CELL_SIZE}px ${CELL_SIZE}px`}}>
                     {cells.map((c) => {
                         return (
                             <Cell x={c.x} y={c.y} key={`${c.x},${c.y}`}/>
@@ -147,6 +165,9 @@ class Game extends React.Component<any, any>{
                     Update every <input onChange={(e) => this.handleIntervalChange(e)} value={this.state.interval}/> ms
                     {this.state.isRunning ? <button className="button" onClick={() => this.stopGame()}>Stop</button> :
                         <button className="button" onClick={() => this.runGame()}>Run</button>}
+                        <button className="button" onClick={() => this.clear()}>Clear</button>
+                        <button className="button" onClick={() => this.random()}>Random</button>
+                        <input onChange={(e) => this.handleFrequencyChange(e)} value={this.state.frequency}/>
                 </div>
             </div>
         )
