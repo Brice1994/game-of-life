@@ -2,17 +2,18 @@ import React from 'react';
 import './Game.css'
 import Cell from "./Cell";
 
-export const CELL_SIZE = 10;
+export const CELL_SIZE = 20;
 const WIDTH = 800;
 const HEIGHT = 600;
 
 class Game extends React.Component<any, any>{
-    state: {cells: {x: number, y: number}[], interval: number, isRunning: boolean, frequency: number} = {
+    state: {cells: {x: number, y: number, style: any}[], interval: number, isRunning: boolean, frequency: number} = {
         cells: [],
         interval: 100,
         isRunning: false,
         frequency: 20
     }
+    saved: boolean[][] = [[]];
     rows: number;
     cols: number;
     board: any;
@@ -64,6 +65,7 @@ class Game extends React.Component<any, any>{
         return board;
     }
     runGame() {
+        this.saved = this.board.map((b: boolean[]) => b.slice());
         this.setState({
             isRunning: true
         })
@@ -125,7 +127,7 @@ class Game extends React.Component<any, any>{
         for(let y = 0; y < this.rows; y++){
             for(let x = 0; x < this.cols; x++){
                 if(this.board[y][x]){
-                    cells.push({x,y});
+                    cells.push({x,y, style: {background: "green"}});
                 }
             }
         }
@@ -150,6 +152,12 @@ class Game extends React.Component<any, any>{
             frequency: event.target.value
         })
     }
+    undo(){
+        this.board = this.saved;
+        this.setState({
+            cells: this.makeCells()
+        })
+    }
     render() {
         const {cells} = this.state;
         return (
@@ -157,7 +165,7 @@ class Game extends React.Component<any, any>{
                 <div onClick={(e) => this.handleClick(e)} ref={(n) => {this.boardRef = n}} className="Board" style={{width: WIDTH, height: HEIGHT, backgroundSize: `${CELL_SIZE}px ${CELL_SIZE}px`}}>
                     {cells.map((c) => {
                         return (
-                            <Cell x={c.x} y={c.y} key={`${c.x},${c.y}`}/>
+                            <Cell style={c.style} x={c.x} y={c.y} key={`${c.x},${c.y}`}/>
                         )
                     })}
                 </div>
@@ -166,6 +174,7 @@ class Game extends React.Component<any, any>{
                     {this.state.isRunning ? <button className="button" onClick={() => this.stopGame()}>Stop</button> :
                         <button className="button" onClick={() => this.runGame()}>Run</button>}
                         <button className="button" onClick={() => this.clear()}>Clear</button>
+                        <button className="button" onClick={() => this.undo()}>Undo</button>
                         <button className="button" onClick={() => this.random()}>Random</button>
                         <input onChange={(e) => this.handleFrequencyChange(e)} value={this.state.frequency}/>
                 </div>
