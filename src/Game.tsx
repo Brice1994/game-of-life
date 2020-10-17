@@ -1,11 +1,16 @@
 import React from 'react';
 import './Game.css'
 import Cell from "./Cell";
+import { start } from 'repl';
 
 export const CELL_SIZE = 20;
 const WIDTH = 800;
 const HEIGHT = 600;
 
+interface BoardCell {
+    isAlive: boolean,
+    style: any
+}
 class Game extends React.Component<any, any>{
     state: {cells: {x: number, y: number, style: any}[], interval: number, isRunning: boolean, frequency: number} = {
         cells: [],
@@ -13,10 +18,10 @@ class Game extends React.Component<any, any>{
         isRunning: false,
         frequency: 20
     }
-    saved: boolean[][] = [[]];
+    saved: BoardCell[][] = [[]];
     rows: number;
     cols: number;
-    board: any;
+    board: BoardCell[][];
     boardRef: any;
     timeoutHandler: any
     constructor(props: any) {
@@ -42,7 +47,7 @@ class Game extends React.Component<any, any>{
         const x = Math.floor(offsetX / CELL_SIZE);
         const y = Math.floor(offsetY/CELL_SIZE);
         if(x >= 0 && x <= this.cols && y >= 0 && y <= this.rows){
-            this.board[y][x] = !this.board[y][x];
+            this.board[y][x].isAlive = !this.board[y][x].isAlive;
         }
         this.setState({
             cells: this.makeCells()
@@ -55,17 +60,17 @@ class Game extends React.Component<any, any>{
         })
     }
     makeEmptyBoard() {
-        let board: boolean[][] = [];
+        let board: {isAlive: boolean, style: any}[][] = [];
         for(let y = 0; y < this.rows; y++){
             board.push([]);
             for(let x = 0; x < this.cols; x++){
-                board[y][x] = false;
+                board[y][x] = {isAlive: false, style: ""};
             }
         }
         return board;
     }
     runGame() {
-        this.saved = this.board.map((b: boolean[]) => b.slice());
+        this.saved = this.board.map((b: {isAlive: boolean, style: any}[]) => b.slice());
         this.setState({
             isRunning: true
         })
@@ -76,11 +81,11 @@ class Game extends React.Component<any, any>{
         for(let i = 0; i < this.rows; i++){
             for(let j = 0; j < this.cols; j++){
                 let n = this.getNeighbors(this.board, i, j);
-                if(this.board[i][j]){
-                    newBoard[i][j] = n === 2 || n === 3;
+                if(this.board[i][j].isAlive){
+                    newBoard[i][j].isAlive = (n === 2 || n === 3);
                 }else {
                     if(n === 3){
-                        newBoard[i][j] = true;
+                        newBoard[i][j].isAlive = true;
                     }
                 }
             }
@@ -93,7 +98,7 @@ class Game extends React.Component<any, any>{
             this.runIteration()
         }, this.state.interval)
     }
-    getNeighbors(board: boolean[][], i: number, j: number){
+    getNeighbors(board: {isAlive: boolean, style:any}[][], i: number, j: number){
         let n = [];
         for(let k = -1; k < 2; k++){
             for(let l = -1; l < 2; l++){
@@ -105,7 +110,7 @@ class Game extends React.Component<any, any>{
                 }
             }
         }
-        return n.filter(v => v).length;
+        return n.filter(v => v && v.isAlive === true).length;
     }
     stopGame() {
         this.setState({
@@ -126,20 +131,19 @@ class Game extends React.Component<any, any>{
         let cells = [];
         for(let y = 0; y < this.rows; y++){
             for(let x = 0; x < this.cols; x++){
-                if(this.board[y][x]){
-                    cells.push({x,y, style: {background: "green"}});
+                if(this.board[y][x].isAlive){
+                    cells.push({x,y, style: this.board[y][x].style});
                 }
             }
         }
         return cells;
     }
-
     random(){
         let newBoard = this.makeEmptyBoard();
         for(let i = 0; i < this.rows; i++) {
             for(let j = 0; j < this.cols; j++){
                 let v = Math.floor(Math.random() * Math.floor(100));
-                newBoard[i][j] = v < this.state.frequency;
+                newBoard[i][j].isAlive = v < this.state.frequency;
             }
         }
         this.board = newBoard;
@@ -169,7 +173,7 @@ class Game extends React.Component<any, any>{
                         )
                     })}
                 </div>
-                <div className="controls">
+                <div className="controls" style= {{color: "white", textAlign: "center"}}>
                     Update every <input onChange={(e) => this.handleIntervalChange(e)} value={this.state.interval}/> ms
                     {this.state.isRunning ? <button className="button" onClick={() => this.stopGame()}>Stop</button> :
                         <button className="button" onClick={() => this.runGame()}>Run</button>}

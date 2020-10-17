@@ -4,7 +4,7 @@ export default class Cell extends React.Component<any, any> {
 
     render() {
         const { x, y, style } = this.props;
-        let cellStyle = {style, left: `${CELL_SIZE * x + 1}px`,top: `${CELL_SIZE * y + 1}px`,width: `${CELL_SIZE - 1}px`,height: `${CELL_SIZE - 1}px`      }
+        let cellStyle = {...style, left: `${CELL_SIZE * x + 1}px`,top: `${CELL_SIZE * y + 1}px`,width: `${CELL_SIZE - 1}px`,height: `${CELL_SIZE - 1}px`      }
         return (
             <div className="Cell" style={cellStyle} />
         );
