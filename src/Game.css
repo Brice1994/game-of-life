@@ -1,5 +1,6 @@
 :root {
-    --fade-in-time: .2s;
+    --fade-in-time: 0s;
+
 }
 .controls {
     margin: 10px;
